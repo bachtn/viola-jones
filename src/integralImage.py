@@ -23,9 +23,6 @@ class IntegralImage(object):
         return integralTmp
         """
 
-    def getIndex(self, x, y):
-        return y * self.width + x
-
     def get(self, x, y):
         width, height = self.size
         index = y * width + x
@@ -39,3 +36,15 @@ class IntegralImage(object):
             cummulative = self.get(x - 1, y) + self.get(x, y - 1) - self.get(x - 1, y - 1) + self.data[index]
             self.integral[index] = cummulative
             return cummulative
+
+    def getSubWindow(self, x, y, size):
+        """
+        Get the square at coordinate (x,y) and size = size
+        """
+        x -= 1
+        y -= 1
+        a = self.get(x, y)
+        b = self.get(x, y + size)
+        c = self.get(x + size, y)
+        d = self.get(x + size, y + size)
+        return d - b - c + a

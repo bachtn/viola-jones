@@ -3,12 +3,9 @@ from typing import List
 from integralImage import *
 
 def main():
-    image = openImage("../samples/black.jpg")
-    integralImage = IntegralImage(image.size, dataToList(image))
-    #data = [1,1,1,1]
-    #integralImage = IntegralImage((2,2), data)
-    print(integralImage.data)
-    print(integralImage.size)
+    image = openImage("samples/lena.png")
+    image = toGrayscale(image)
+    image.show()
 
 def openImage(imagePath):
     im = Image.open(imagePath)
