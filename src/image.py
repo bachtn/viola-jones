@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 from PIL import Image
 from typing import List
 from integralImage import *

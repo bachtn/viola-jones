@@ -34,18 +34,32 @@ class Haar(object):
 
     def computeHaar(self, x, y, size, integralImage):
         #TODO implment visitor design pattern so that you will not need to check what method you want to call
+        #TODO: correct dictionary
         """
         **locals() gives all the local variables: x, y ...
         => you should not declare variables before using it if you need only to pass function arguments
         """
+        """
         return {
-                HaarFeatureId.A2VWB: computeHaarA2VWB(**locals()),
-                HaarFeatureId.B2HWB: computeHaarB2HWB(**locals()),
-                HaarFeatureId.C3WBW: computeHaarC3WBW(**locals()),
-                HaarFeatureId.D4WBBW: computeHaarD4WBBW(**locals())
-                }[haar_id]
+                HaarFeatureId.A2VWB: Haar.computeHaarA2VWB(self.haar_id, x, y, size, integralImage),
+                HaarFeatureId.B2HWB: Haar.computeHaarB2HWB(self.haar_id, x, y, size, integralImage),
+                HaarFeatureId.C3WBW: Haar.computeHaarC3WBW(self.haar_id, x, y, size, integralImage),
+                HaarFeatureId.D4WBBW: Haar.computeHaarD4WBBW(self.haar_id, x, y, size, integralImage)
+                }[self.haar_id]
+        """
+        value = 0
+        if (self.haar_id == HaarFeatureId.A2VWB):
+            value = Haar.computeHaarA2VWB(self.haar_id, x, y, size, integralImage)
+        elif (self.haar_id == HaarFeatureId.B2HWB):
+            value = Haar.computeHaarB2HWB(self.haar_id, x, y, size, integralImage)
+        elif (self.haar_id == HaarFeatureId.C3WBW):
+            value = Haar.computeHaarC3WBW(self.haar_id, x, y, size, integralImage)
+        elif (self.haar_id == HaarFeatureId.D4WBBW):
+            value = Haar.computeHaarD4WBBW(self.haar_id, x, y, size, integralImage)
+        else: raise Exception("Invalid haarId")
+        return -1 * value if self.is_inverted else value
 
-    def computeHaarA2VWB(self, haar_id, x, y, size, integralImage):
+    def computeHaarA2VWB(haar_id, x, y, size, integralImage):
         """
         -------  --------  --------
         |00|11|  |00|111|  |000|11|
@@ -55,10 +69,15 @@ class Haar(object):
         if (haar_id != HaarFeatureId.A2VWB):
             raise Exception("Invalid Haar computation, expected: %s, found: %s." % (HaarFeatureId.A2VWB.name, haar_id.name))
         else:
+            (a, b) = (size // 2, size % 2)
+            firstValue = integralImage.getSubWindow(x, y, a, size)
+            secondValue = integralImage.getSubWindow(x + a, y, a + b, size)
+            resultSubstraction = firstValue - secondValue
+            return resultSubstraction
 
-            pass
 
-    def computeHaarB2HWB(self, haar_id, x, y, size, integralImage):
+
+    def computeHaarB2HWB(haar_id, x, y, size, integralImage):
         """
         ------          ------
         |0000|  ------  |0000|
@@ -71,9 +90,14 @@ class Haar(object):
         if (haar_id != HaarFeatureId.B2HWB):
             raise Exception("Invalid Haar computation, expected: %s, found: %s." % (HaarFeatureId.B2HWB.name, haar_id.name))
         else:
-            pass
+            assert(size >= 2)
+            (a, b) = (size // 2, size % 2)
+            firstValue = integralImage.getSubWindow(x, y, size, a)
+            secondValue = integralImage.getSubWindow(x, y + a, size, a + b)
+            resultSubstraction = firstValue - secondValue
+            return resultSubstraction
 
-    def computeHaarC3WBW(self, haar_id, x, y, size, integralImage):
+    def computeHaarC3WBW(haar_id, x, y, size, integralImage):
         """
         ----------  -----------
         |00|11|00|  |00|111|00|
@@ -83,9 +107,21 @@ class Haar(object):
         if (haar_id != HaarFeatureId.C3WBW):
             raise Exception("Invalid Haar computation, expected: %s, found: %s." % (HaarFeatureId.C3WBW.name, haar_id.name))
         else:
-            pass
+            assert(size >= 3)
+            h = size
+            (a, b) = (size // 3, size % 3)
+            (x0, w0) = (x, a)
+            (x1, w1) = (x + w0, w0 + b)
+            x2 = x1 + a
 
-    def computeHaarD4WBBW(self, haar_id, x, y, size, integralImage):
+            firstValue = integralImage.getSubWindow(x0, y, w0, h)
+            secondValue = integralImage.getSubWindow(x1, y, w1, h)
+            thirdValue = integralImage.getSubWindow(x2, y, w0, h)
+
+            resultSubstraction = firstValue + thirdValue - secondValue
+            return resultSubstraction
+
+    def computeHaarD4WBBW(haar_id, x, y, size, integralImage):
         """
         -------  --------  --------
         |00|11|  |00|111|  |000|11|
@@ -96,6 +132,16 @@ class Haar(object):
         if (haar_id != HaarFeatureId.D4WBBW):
             raise Exception("Invalid Haar computation, expected: %s, found: %s." % (HaarFeatureId.D4WBBW.name, haar_id.name))
         else:
-            pass
+            assert(size >= 2)
+            (a, b) = (size // 2, size % 2)
+            (x0, y0, w0, h0) = (x, y, a, a)
+            (x1, y1, w1) = (x + a, y, a + b)
+            (y2, h2) = (y + a, a + b)
 
+            firstValue = integralImage.getSubWindow(x0, y0, w0, h0)
+            secondValue = integralImage.getSubWindow(x1, y1, w1, h0)
+            thirdValue = integralImage.getSubWindow(x0, y2, w0, h2)
+            fourthValue = integralImage.getSubWindow(x1, y2, w1, h2)
 
+            resultSubstraction = firstValue + fourthValue - (secondValue + thirdValue)
+            return resultSubstraction

@@ -3,37 +3,52 @@
 import os, sys
 sys.path.insert(1, os.path.join(sys.path[0], '..'))
 import unittest
-from src.haar import Haar
 from src.haar import HaarFeatureId
+from src.haar import Haar
 from src.integralImage import IntegralImage
 
 class HaarTest(unittest.TestCase):
 
     @classmethod
     def setUpClass(self):
-        pass
+        self.haar = Haar(HaarFeatureId(1), False)
+        data = [1,2,3,4,
+                5,6,7,8,
+                9,10,11,12,
+                13,14,15,16]
+        size = (4,4)
+        self.integralImage = IntegralImage(size, data)
 
     @classmethod
     def tearDownClass(self):
-        pass
+        del self.integralImage
+        del self.haar
 
     def testConstructor(self):
+        #TODO
         pass
 
     def testComputeHaar(self):
-        pass
+        value = self.haar.computeHaar(2, 2, 2, self.integralImage)
+        self.assertEqual(value, -2)
 
     def testComputeHaarA2VWB(self):
-        pass
+        value = Haar.computeHaarA2VWB(HaarFeatureId(1), 2, 2, 2, self.integralImage)
+        self.assertEqual(value, -2)
 
     def testComputeHaarB2HWB(self):
-        pass
+        value = Haar.computeHaarB2HWB(HaarFeatureId(2), 2, 2, 2, self.integralImage)
+        self.assertEqual(value, -8)
 
     def testComputeHaarC3WBW(self):
-        pass
+        value = Haar.computeHaarC3WBW(HaarFeatureId(3), 1, 1, 3, self.integralImage)
+        self.assertEqual(value, 33)
 
     def testComputeHaarD4WBBW(self):
-        pass
+        value = Haar.computeHaarD4WBBW(HaarFeatureId(4), 2, 2, 2, self.integralImage)
+        self.assertEqual(value, 0)
+        value = Haar.computeHaarD4WBBW(HaarFeatureId(4), 1, 1, 3, self.integralImage)
+        self.assertEqual(value, 21)
 
 if __name__ == '__main__':
     unittest.main()
