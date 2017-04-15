@@ -37,14 +37,14 @@ class IntegralImage(object):
             self.integral[index] = cummulative
             return cummulative
 
-    def getSubWindow(self, x, y, size):
+    def getSubWindow(self, x, y, width, height):
         """
         Get the square at coordinate (x,y) and size = size
         """
         x -= 1
         y -= 1
         a = self.get(x, y)
-        b = self.get(x, y + size)
-        c = self.get(x + size, y)
-        d = self.get(x + size, y + size)
+        b = self.get(x, y + height)
+        c = self.get(x + width, y)
+        d = self.get(x + width, y + height)
         return d - b - c + a
