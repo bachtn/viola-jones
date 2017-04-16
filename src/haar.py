@@ -5,12 +5,22 @@ import operator
 import typing
 
 class HaarFeatureId(Enum):
-    A2VWB = 1   # -> 01
-    B2HWB = 2   # -> 0/1
-    C3WBW = 3   # -> 010
-    D4WBBW = 4  # -> 01/10
+    A2VWB = 1   # -> 01     -- 2 Vertical blocks White Black
+    B2HWB = 2   # -> 0/1    -- 2 Horizontal blocks White Black
+    C3WBW = 3   # -> 010    -- 3 vertical blocks White Black White
+    D4WBBW = 4  # -> 01/10  -- 4 horizontal / vertical blocks
+                # White Black Black White
 
 class Haar(object):
+    """
+    This class models a Haar Feature.
+    A Haar Feature is represented by its id: haar_id and the order
+    of the blocks eg: White Black or Black White ....
+    This is managed by the attribute is_inverted.
+    Given a haar_id, an integralImage and the information of a subwindow
+    (coordinates, size), we can compute the differance between
+    the subwindow and the haar feature.
+    """
     def __init__(self, haar_id, is_inverted):
         self.haar_id = haar_id
         self.is_inverted = is_inverted
@@ -21,7 +31,7 @@ class Haar(object):
     @haar_id.setter
     def haar_id(self, haar_id):
         if not haar_id or not isinstance(haar_id, HaarFeatureId):
-            raise Exception("haar_id should be one of the HaarFeatureId class values")
+            raise ValueError("haar_id should be one of the HaarFeatureId class values")
         self._haar_id = haar_id
 
     is_inverted = property(operator.attrgetter('_is_inverted'))
@@ -29,11 +39,12 @@ class Haar(object):
     @is_inverted.setter
     def is_inverted(self, is_inverted):
         if not isinstance(is_inverted, bool):
-            raise Exception("is_inverted should be True or False")
+            raise ValueError("is_inverted should be True or False")
         self._is_inverted = is_inverted
 
     def computeHaar(self, x, y, size, integralImage):
-        #TODO implment visitor design pattern so that you will not need to check what method you want to call
+        #TODO implment visitor design pattern so that you will not
+        # need to check what method you want to call
         #TODO: correct dictionary
         """
         **locals() gives all the local variables: x, y ...
@@ -56,7 +67,7 @@ class Haar(object):
             value = Haar.computeHaarC3WBW(self.haar_id, x, y, size, integralImage)
         elif (self.haar_id == HaarFeatureId.D4WBBW):
             value = Haar.computeHaarD4WBBW(self.haar_id, x, y, size, integralImage)
-        else: raise Exception("Invalid haarId")
+        else: raise ValueError("Invalid haarId")
         return -1 * value if self.is_inverted else value
 
     def computeHaarA2VWB(haar_id, x, y, size, integralImage):
@@ -67,7 +78,7 @@ class Haar(object):
         -------  --------  --------
         """
         if (haar_id != HaarFeatureId.A2VWB):
-            raise Exception("Invalid Haar computation, expected: %s, found: %s." % (HaarFeatureId.A2VWB.name, haar_id.name))
+            raise ValueError("Invalid Haar computation, expected: %s, found: %s." % (HaarFeatureId.A2VWB.name, haar_id.name))
         else:
             (a, b) = (size // 2, size % 2)
             firstValue = integralImage.getSubWindow(x, y, a, size)
@@ -88,7 +99,7 @@ class Haar(object):
         ------  ------
         """
         if (haar_id != HaarFeatureId.B2HWB):
-            raise Exception("Invalid Haar computation, expected: %s, found: %s." % (HaarFeatureId.B2HWB.name, haar_id.name))
+            raise ValueError("Invalid Haar computation, expected: %s, found: %s." % (HaarFeatureId.B2HWB.name, haar_id.name))
         else:
             assert(size >= 2)
             (a, b) = (size // 2, size % 2)
@@ -105,7 +116,7 @@ class Haar(object):
         ----------  -----------
         """
         if (haar_id != HaarFeatureId.C3WBW):
-            raise Exception("Invalid Haar computation, expected: %s, found: %s." % (HaarFeatureId.C3WBW.name, haar_id.name))
+            raise ValueError("Invalid Haar computation, expected: %s, found: %s." % (HaarFeatureId.C3WBW.name, haar_id.name))
         else:
             assert(size >= 3)
             h = size
@@ -130,7 +141,7 @@ class Haar(object):
         -------  --------  --------
         """
         if (haar_id != HaarFeatureId.D4WBBW):
-            raise Exception("Invalid Haar computation, expected: %s, found: %s." % (HaarFeatureId.D4WBBW.name, haar_id.name))
+            raise ValueError("Invalid Haar computation, expected: %s, found: %s." % (HaarFeatureId.D4WBBW.name, haar_id.name))
         else:
             assert(size >= 2)
             (a, b) = (size // 2, size % 2)

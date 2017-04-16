@@ -25,8 +25,18 @@ class HaarTest(unittest.TestCase):
         del self.haar
 
     def testConstructor(self):
-        #TODO
-        pass
+        # Wrong argument's type
+        with self.assertRaises(ValueError): Haar(1, False)
+        with self.assertRaises(ValueError): Haar(HaarFeatureId(1), 'wrong argument')
+        # missing arguments
+        with self.assertRaises(TypeError): Haar(HaarFeatureId(1))
+        with self.assertRaises(TypeError): Haar(False)
+        with self.assertRaises(TypeError): Haar()
+        # Should not fail
+        try:
+            Haar(HaarFeatureId(1), False)
+        except Exception as e:
+            self.fail("Constructor raises exception: %s, while it should not" % type(e).__name__)
 
     def testComputeHaar(self):
         value = self.haar.computeHaar(2, 2, 2, self.integralImage)
