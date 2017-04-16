@@ -7,6 +7,7 @@ all:
 check:
 	python3 tests/integralImageTest.py
 	python3 tests/haarTest.py
+	python3 tests/dataTest.py
 
 clean:
 	$(RM) -r build
