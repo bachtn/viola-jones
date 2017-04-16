@@ -70,6 +70,12 @@ class Data(object):
             raise ValueError("Train percentage should be a non empty float between 0.5 and 0.9")
         self._train_percent = train_percent
 
+    def getData(self):
+        return self.__data
+
+    def getTargets(self):
+        return self.__targets
+
     def categorizeData(data, targets, train_percent):
         xtrain, xtest, ytrain, ytest = train_test_split(data, targets, train_size=train_percent)
         return (xtrain, xtest, ytrain, ytest)

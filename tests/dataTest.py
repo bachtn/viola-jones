@@ -19,7 +19,7 @@ class DataTest(unittest.TestCase):
 
     @classmethod
     def tearDownClass(self):
-        pass
+        del self.data
 
     def testConstructor(self):
         # Empty arguments
@@ -75,7 +75,10 @@ class DataTest(unittest.TestCase):
             with self.assertRaises(ValueError):
                 Data(features=featuresArg, labels=labelsArg, data=dataArg, targets=targetsArg, train_percent=invalid_train_percent_arg)
 
-
+    def testCategorizeData(self):
+        (xtrain, xtest, ytrain, ytest) = Data.categorizeData(self.data.getData(), self.data.getTargets(), self.data.train_percent)
+        #TODO: add test
+        pass
 
 if __name__ == '__main__':
     unittest.main()
