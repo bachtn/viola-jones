@@ -1,6 +1,5 @@
 # Training data
-samples/training
-samples/testing
+samples/data
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
