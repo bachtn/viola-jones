@@ -156,3 +156,6 @@ class Haar(object):
 
             resultSubstraction = firstValue + fourthValue - (secondValue + thirdValue)
             return resultSubstraction
+
+    def __str__(self):
+        return ("haar_id = %s\nis_inverted = %s\n" % (self.haar_id.name, self.is_inverted))
