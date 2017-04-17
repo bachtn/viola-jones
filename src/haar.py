@@ -81,6 +81,7 @@ class Haar(object):
             raise ValueError("Invalid Haar computation, expected: %s, found: %s." % (HaarFeatureId.A2VWB.name, haar_id.name))
         else:
             (a, b) = (size // 2, size % 2)
+            #print("x = %d, y = %d, a = %d, b = %d, size = %d" % (x, y, a, b, size))
             firstValue = integralImage.getSubWindow(x, y, a, size)
             secondValue = integralImage.getSubWindow(x + a, y, a + b, size)
             resultSubstraction = firstValue - secondValue

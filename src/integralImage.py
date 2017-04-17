@@ -26,6 +26,7 @@ class IntegralImage(object):
     def get(self, x, y):
         width, height = self.size
         index = y * width + x
+        #print("x = %d, y = %d, width = %d, height = %d, index = %d" % (x, y, width, height, index))
         if(x < 0 or y < 0):
              # value at negative-indexed point is always 0
              return 0
@@ -43,6 +44,7 @@ class IntegralImage(object):
         """
         x -= 1
         y -= 1
+        #print("x = %d, y = %d, width = %d, height = %d" % (x, y, width, height))
         a = self.get(x, y)
         b = self.get(x, y + height)
         c = self.get(x + width, y)

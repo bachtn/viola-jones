@@ -23,7 +23,7 @@ class ClassifyTestCases(unittest.TestCase):
 
 
     def testCreateDataFromImage(self):
-        infos = createDataFromImage(self.integralImage, 3, 3)
+        infos = createDataFromImage(self.integralImage, 3, 3, 1)
 
 if __name__ == '__main__':
     unittest.main()

@@ -3,15 +3,40 @@
 import os
 from PIL import Image
 import numpy as np
-from src.integralImage import IntegralImage
-from src.haar import Haar, HaarFeatureId
-from src.data import Data
+from integralImage import IntegralImage
+from haar import Haar, HaarFeatureId
+from data import Data
+from sklearn import metrics
+from sklearn.metrics import accuracy_score
+from sklearn.ensemble import AdaBoostClassifier
+from sklearn.externals import joblib
 
 data = []
 targets = []
 haarFeatures = []
 for haarId in HaarFeatureId:
-    haarFeatures.extend([Haar(haarId, True), Haar(haarId, False)])
+    haarFeatures.append(Haar(haarId, False))
+
+def setUpClassifier(dataValues, targetValues):
+    dataValues = np.asarray(dataValues)
+    targetValues = np.asarray(targetValues)
+    features = [HaarFeatureId.A2VWB.name, HaarFeatureId.C3WBW.name,
+            HaarFeatureId.C3WBW.name, HaarFeatureId.D4WBBW.name, 'size']
+    labels = [1,0]
+    dataObject = Data(features, labels, dataValues, targetValues, 0.8)
+    clf = AdaBoostClassifier()
+    # train classifier
+    clf.fit(dataObject.xtrain, dataObject.ytrain)
+
+    # test classifier
+    predicted = clf.predict(dataObject.xtest)
+    expected = dataObject.ytest
+    accuracy = accuracy_score(expected, predicted)
+    print("accuracy = %.2f" % accuracy)
+
+    # Export classifier for future use
+    joblib.dump(clf, 'trained-classifier.pkl')
+    #clfNew = joblib.load('trained-classifier')
 
 def createData(dataDirPath = os.getcwd() + "/samples/data"):
     """
@@ -21,6 +46,8 @@ def createData(dataDirPath = os.getcwd() + "/samples/data"):
     negativeDataPath = dataDirPath + "/negative"
     iterateOverData(positiveDataPath, 1)
     iterateOverData(negativeDataPath, 0)
+    #print("final data size = %d" % (len(targets)))
+    setUpClassifier(data, targets)
 
 def iterateOverData(dataPath, dataType):
     """
@@ -28,7 +55,6 @@ def iterateOverData(dataPath, dataType):
     dataType = positiveData ? 1 : 0
     """
     string = ",".join(map(str, haarFeatures))
-    print(string)
     for subdir, dirs, files in os.walk(dataPath):
         for fileName in files:
             if (fileName.endswith(('.jpg', '.jpeg', '.png'))):
@@ -44,34 +70,46 @@ def createDataFromPath(filePath, dataType):
     image = openImage(filePath)
     image = toGrayscale(image)
     integralImage = getIntegralImage(image)
-    createDataFromImage(integralImage, 5, 20)
+    createDataFromImage(integralImage, 5, 20, dataType)
 
 
-def createDataFromImage(integralImage, windowStep, minWindowSize):
+def createDataFromImage(integralImage, windowStep, minWindowSize, dataType):
     width, height = integralImage.size
     xs, ys = [], []
-    print("height = %d, width = %d, windowStep = %d" % (height, width, windowStep))
     # All possible window sizes
     maxSquare = width if width <= height else height
     possibleSizes = np.arange(minWindowSize, maxSquare, windowStep)
     if (maxSquare % windowStep != 0):
         possibleSizes = np.append(possibleSizes, maxSquare)
-    print("possibleSizes = %s" % possibleSizes)
     for windowSize in possibleSizes:
+
         # All possible x coordinates
-        xs = np.arange(0, width - windowStep, windowSize) if windowSize != width else [0]
+        xs = np.arange(0, width - windowSize, windowSize) if windowSize != width else [0]
         if (width % windowSize != 0): xs = np.append(xs, width - windowSize)
+
         # All possible y coordinates
         ys = np.arange(0, height - windowSize, windowSize) if windowSize != height else [0]
         if (height % windowSize != 0): ys = np.append(ys, height - windowSize)
-        print("size = %d, xs = %s, ys = %s" % (windowSize, xs, ys))
-        for x in xs:
-            for y in ys:
-                continue
+        #print("data size = %d" % (len(targets)))
+        #print("sizes = %s\n\n\nxs = %s\n\n\nys = %s\n\n\n" % (possibleSizes, xs, ys))
+        # Generate all combinations between possible x and y coordinates
+        allCoordinates = [[x,y] for x in xs for y in ys]
+        computeHaarForGivenSize(integralImage, windowSize, allCoordinates, dataType)
 
+def computeHaarForGivenSize(integralImage, windowSize, allCoordinates, dataType):
+    for (x,y) in allCoordinates:
+        dataTmp = []
+        for haar in haarFeatures:
+            value = haar.computeHaar(x, y, windowSize, integralImage)
+            dataTmp.append(value)
+            #TODO targetId can be generated from the size of data
+        dataTmp.append(windowSize)
+        data.append(dataTmp)
+        targets.append(dataType)
 
 def openImage(imagePath):
     im = Image.open(imagePath)
+    print(im.size)
     return im
 
 def dataToList(image):
