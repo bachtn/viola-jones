@@ -11,33 +11,53 @@ from sklearn import metrics
 from sklearn.metrics import accuracy_score
 from sklearn.ensemble import AdaBoostClassifier
 from sklearn.externals import joblib
+import matplotlib.pyplot as plt
+import matplotlib.patches as ptc
+
 
 
 def predict(imagePath, clfName):
     clf = joblib.load(clfName)
     image = openImage(imagePath)
-    image.show()
-    """
     image = toGrayscale(image)
     integralImage = getIntegralImage(image)
-    preparedData = prepareData(integralImage, 5, 20)
+    allCoord = []
+    preparedData = prepareData(integralImage, 5, 20, allCoord)
     dataValues = np.asarray(preparedData)
     predicted = clf.predict(dataValues)
-    print(predicted)
+    drawRectangles(image, allCoord, predicted, preparedData)
+    """
     predicted_str = '\n'.join(map(str, predicted.tolist()))
     dataValues_str = '\n'.join(map(str, dataValues))
-    """
-    """
+    allCoord = '\n'.join(map(str, allCoord))
     fp = open('predictionResult', 'w')
     fd = open('dataResult', 'w')
+    fc = open('coordinates', 'w')
     fp.write(predicted_str)
     fd.write(dataValues_str)
+    fc.write(allCoord)
     fp.close()
     fd.close()
+    fc.close()
     """
 
 
-def prepareData(integralImage, windowStep, minWindowSize):
+def drawRectangles(image, allCoord, predicted, preparedData):
+    positiveIndexes = np.where(predicted == 1)
+    im = np.array(Image.open('test.jpg'), dtype=np.uint8)
+    fig, ax = plt.subplots(1)
+    ax.imshow(im)
+    for pIndex in positiveIndexes:
+        for index in pIndex:
+            x, y = allCoord[index]
+            size = preparedData[index][4:][0]
+            print(size)
+            rect = ptc.Rectangle((x, y), size, size, linewidth=1, edgecolor='r', facecolor='none')
+            ax.add_patch(rect)
+    plt.show()
+
+
+def prepareData(integralImage, windowStep, minWindowSize, allCoord):
     preparedData = []
     width, height = integralImage.size
     xs, ys = [], []
@@ -46,6 +66,7 @@ def prepareData(integralImage, windowStep, minWindowSize):
     possibleSizes = np.arange(minWindowSize, maxSquare, windowStep)
     if (maxSquare % windowStep != 0):
         possibleSizes = np.append(possibleSizes, maxSquare)
+    fp = open('coordinates', 'w')
     for windowSize in possibleSizes:
 
         # All possible x coordinates
@@ -59,7 +80,12 @@ def prepareData(integralImage, windowStep, minWindowSize):
         #print("sizes = %s\n\n\nxs = %s\n\n\nys = %s\n\n\n" % (possibleSizes, xs, ys))
         # Generate all combinations between possible x and y coordinates
         allCoordinates = [[x,y] for x in xs for y in ys]
+        allCoord.extend(allCoordinates)
+        allCoordinates_str = '\n'.join(map(str, allCoordinates))
+        #fp.write("window size = %d" % windowSize)
+        #fp.write(allCoordinates_str)
         preparedData.extend(prepareSubWindow(integralImage, windowSize, allCoordinates))
+    fp.close()
     return preparedData
 
 def prepareSubWindow(integralImage, windowSize, allCoordinates):
