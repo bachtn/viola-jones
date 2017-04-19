@@ -2,6 +2,10 @@
 samples/data
 tests/test.py
 test.jpg
+predictionResult
+coordinates
+dataResult
+
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
