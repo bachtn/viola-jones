@@ -13,20 +13,12 @@ class IntegralImage(object):
 
     def generate(self):
         width, height = self.size
-        self.integral = [self.get(x, y) for y in range(height) for x in range(width)]
-        """integralTmp = []
-        sumValue = 0
-        for j in range(0, self.height - 1):
-            for i in range(0, self.width - 1):
-                sumValue = sumValue + self.data[self.getIndex(i, j)]
-                integralTmp.append(sumValue)
-        return integralTmp
-        """
+        self.integral = \
+            [self.get(x, y) for y in range(height) for x in range(width)]
 
     def get(self, x, y):
         width, height = self.size
         index = y * width + x
-        #print("x = %d, y = %d, width = %d, height = %d, index = %d" % (x, y, width, height, index))
         if(x < 0 or y < 0):
              # value at negative-indexed point is always 0
              return 0
@@ -34,7 +26,8 @@ class IntegralImage(object):
              # if the value at point x, y has already been generated
              return self.integral[index]
         else:
-            cummulative = self.get(x - 1, y) + self.get(x, y - 1) - self.get(x - 1, y - 1) + self.data[index]
+            cummulative = self.get(x - 1, y) + self.get(x, y - 1) \
+                - self.get(x - 1, y - 1) + self.data[index]
             self.integral[index] = cummulative
             return cummulative
 
@@ -44,7 +37,6 @@ class IntegralImage(object):
         """
         x -= 1
         y -= 1
-        #print("x = %d, y = %d, width = %d, height = %d" % (x, y, width, height))
         a = self.get(x, y)
         b = self.get(x, y + height)
         c = self.get(x + width, y)

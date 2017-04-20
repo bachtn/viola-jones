@@ -3,13 +3,15 @@
 import os
 from PIL import Image
 import numpy as np
-from integralImage import IntegralImage
-from haar import Haar, HaarFeatureId
-from data import Data
 from sklearn import metrics
 from sklearn.metrics import accuracy_score
 from sklearn.ensemble import AdaBoostClassifier
 from sklearn.externals import joblib
+
+from utils import *
+from integralImage import IntegralImage
+from haar import Haar, HaarFeatureId
+from data import Data
 
 data = []
 targets = []
@@ -62,15 +64,16 @@ def iterateOverData(dataPath, dataType):
                 createDataFromPath(dataFilePath, dataType)
 
 
-def createDataFromPath(filePath, dataType):
+def createDataFromPath(imgPath, dataType):
     """
     filePath represents the path of the data file
     targetId = {1, 0}: 1 -> yes, 0 -> no
     """
-    image = openImage(filePath)
-    image = toGrayscale(image)
-    integralImage = getIntegralImage(image)
-    createDataFromImage(integralImage, 5, 20, dataType)
+    tmp = normalizeImageData(imgPath)
+    normalizedData = tmp['data']
+    size = tmp['size']
+    integralImage = getIntegralImage(normalizedData, size)
+    createDataFromImage(integralImage, 1, 24, dataType)
 
 
 def createDataFromImage(integralImage, windowStep, minWindowSize, dataType):
@@ -107,30 +110,3 @@ def computeHaarForGivenSize(integralImage, windowSize, allCoordinates, dataType)
         data.append(dataTmp)
         targets.append(dataType)
 
-def openImage(imagePath):
-    im = Image.open(imagePath)
-    print(im.size)
-    return im
-
-def dataToList(image):
-    data = []
-    for i in list(image.getdata()): #getdata contains an RGB(tuple) array
-        for j in i:
-            data.append(j)
-    return data
-
-def toImage(imageData, size, mode):
-    newImage = Image.new(mode, size)
-    newImage.putdata(imageData)
-    return newImage
-
-def toGrayscale(image):
-    return image.convert('LA')
-
-def getIntegralImage(image):
-    return IntegralImage(image.size, dataToList(image))
-
-def saveToFile(data, filename):
-    dataFile = open(filename, 'w')
-    for item in data:
-        dataFile.write("%s " % item)

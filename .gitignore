@@ -2,10 +2,12 @@
 samples/data
 tests/test.py
 test.jpg
+test.py
+src/tmp.py
 predictionResult
 coordinates
 dataResult
-
+*.pkl
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

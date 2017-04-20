@@ -3,10 +3,6 @@
 import os
 from PIL import Image
 import numpy as np
-from integralImage import IntegralImage
-from haar import Haar, HaarFeatureId
-from data import Data
-from classify import *
 from sklearn import metrics
 from sklearn.metrics import accuracy_score
 from sklearn.ensemble import AdaBoostClassifier
@@ -14,18 +10,24 @@ from sklearn.externals import joblib
 import matplotlib.pyplot as plt
 import matplotlib.patches as ptc
 
+from utils import *
+from integralImage import IntegralImage
+from haar import Haar, HaarFeatureId
+from data import Data
+from classify import *
 
 
-def predict(imagePath, clfName):
+def predict(imgPath, clfName):
     clf = joblib.load(clfName)
-    image = openImage(imagePath)
-    image = toGrayscale(image)
-    integralImage = getIntegralImage(image)
+    tmp = normalizeImageData(imgPath)
+    normalizedData = tmp['data']
+    size = tmp['size']
+    integralImage = getIntegralImage(normalizedData, size)
     allCoord = []
     preparedData = prepareData(integralImage, 5, 20, allCoord)
     dataValues = np.asarray(preparedData)
     predicted = clf.predict(dataValues)
-    drawRectangles(image, allCoord, predicted, preparedData)
+    drawRectangles(allCoord, predicted, preparedData)
     """
     predicted_str = '\n'.join(map(str, predicted.tolist()))
     dataValues_str = '\n'.join(map(str, dataValues))
@@ -42,18 +44,17 @@ def predict(imagePath, clfName):
     """
 
 
-def drawRectangles(image, allCoord, predicted, preparedData):
+def drawRectangles(allCoord, predicted, preparedData):
     positiveIndexes = np.where(predicted == 1)
     im = np.array(Image.open('test.jpg'), dtype=np.uint8)
     fig, ax = plt.subplots(1)
     ax.imshow(im)
-    for pIndex in positiveIndexes:
-        for index in pIndex:
-            x, y = allCoord[index]
-            size = preparedData[index][4:][0]
-            print(size)
-            rect = ptc.Rectangle((x, y), size, size, linewidth=1, edgecolor='r', facecolor='none')
-            ax.add_patch(rect)
+    for index in positiveIndexes[0]:
+        x, y = allCoord[index]
+        size = preparedData[index][4:][0]
+        rect = ptc.Rectangle((x, y), size, size, linewidth=1,
+                edgecolor='r', facecolor='none')
+        ax.add_patch(rect)
     plt.show()
 
 
