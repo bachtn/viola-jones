@@ -1,5 +1,5 @@
 # Training data
-samples/data
+samples/
 tests/test.py
 test.jpg
 test.py

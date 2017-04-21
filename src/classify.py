@@ -19,6 +19,7 @@ haarFeatures = []
 for haarId in HaarFeatureId:
     haarFeatures.append(Haar(haarId, False))
 
+
 def setUpClassifier(dataValues, targetValues):
     dataValues = np.asarray(dataValues)
     targetValues = np.asarray(targetValues)
@@ -40,16 +41,128 @@ def setUpClassifier(dataValues, targetValues):
     joblib.dump(clf, 'trained-classifier.pkl')
     #clfNew = joblib.load('trained-classifier')
 
+
 def createData(dataDirPath = os.getcwd() + "/samples/data"):
     """
     dataDirPath = the path to the directory containing data
     """
-    positiveDataPath = dataDirPath + "/positive"
-    negativeDataPath = dataDirPath + "/negative"
-    iterateOverData(positiveDataPath, 1)
-    iterateOverData(negativeDataPath, 0)
-    #print("final data size = %d" % (len(targets)))
+    createPositiveData()
+    createNegativeData()
     setUpClassifier(data, targets)
+
+def createPositiveData():
+    with open('samples/pos/info.lst') as f:
+        content = f.readlines()
+
+    for ln in content:
+        lnC = ln.rstrip().split(' ')
+        filename = 'samples/pos/' + lnC[0]
+        x = int(lnC[2])
+        y = int(lnC[3])
+        w = int(lnC[4])
+        h = int(lnC[5])
+        createDataFromPath(datatype=1, imgPath=filename, \
+                xCoord=x, yCoord=y, width=w, height=h)
+
+def createNegativeData():
+    with open('samples/neg/bg.txt') as f:
+        content = f.readlines()
+
+    for ln in content:
+        lnC = ln.rstrip().split(' ')
+        filename = 'samples/neg/' + lnC[0]
+        createDataFromPath(datatype=0, imgPath=filename)
+
+def createDataFromPath(**kwargs):
+    """
+    filePath represents the path of the data file
+    targetId = {1, 0}: 1 -> yes, 0 -> no
+    """
+    datatype = kwargs['datatype']
+    imgPath = kwargs['imgPath']
+    tmp = normalizeImageData(imgPath)
+    normalizedData = tmp['data']
+    size = tmp['size']
+    integralImage = getIntegralImage(normalizedData, size)
+    if (datatype == 0):
+        createDataFromImage(integralImage, 1, 24, datatype, None)
+    else:
+        x = kwargs['xCoord']
+        y = kwargs['yCoord']
+        w = kwargs['width']
+        h = kwargs['height']
+        createDataFromImage(integralImage, 1, 24, datatype, \
+                xCoord=x, yCoord=y, width=w, height=h)
+
+
+def createDataFromImage(integralImage, step, minSize, dataType, **kwargs):
+    width, height = integralImage.size
+    xs, ys = [], []
+    # All possible window sizes
+    maxSquare = width if width <= height else height
+    possibleSizes = np.arange(minSize, maxSquare, step)
+    if (maxSquare % step != 0):
+        possibleSizes = np.append(possibleSizes, maxSquare)
+
+    for windowSize in possibleSizes:
+        # All possible x coordinates
+        xs = np.arange(0, width - windowSize, windowSize) \
+                if windowSize != width else [0]
+        if (width % windowSize != 0): xs = np.append(xs, width - windowSize)
+
+        # All possible y coordinates
+        ys = np.arange(0, height - windowSize, windowSize) \
+                if windowSize != height else [0]
+        if (height % windowSize != 0): \
+                ys = np.append(ys, height - windowSize)
+        #print("data size = %d" % (len(targets)))
+
+        # Generate all combinations between possible x and y coordinates
+        allCoordinates = [[x,y] for x in xs for y in ys]
+        computeHaarForGivenSize(integralImage, windowSize, \
+                allCoordinates, dataType)
+
+def getPossibleCoordinates(width, height, minSize, step):
+    xs, ys = [], []
+    # All possible window sizes
+    maxSquare = width if width <= height else height
+    possibleSizes = np.arange(minSize, maxSquare, step)
+    if (maxSquare % step != 0):
+        possibleSizes = np.append(possibleSizes, maxSquare)
+    for windowSize in possibleSizes:
+
+        # All possible x coordinates
+        xs = np.arange(0, width - windowSize, windowSize) \
+                if windowSize != width else [0]
+        if (width % windowSize != 0): xs = np.append(xs, width - windowSize)
+
+        # All possible y coordinates
+        ys = np.arange(0, height - windowSize, windowSize) \
+                if windowSize != height else [0]
+        if (height % windowSize != 0): \
+                ys = np.append(ys, height - windowSize)
+        #print("data size = %d" % (len(targets)))
+
+        # Generate all combinations between possible x and y coordinates
+        allCoordinates = [[x,y] for x in xs for y in ys]
+        return allCoordinates
+
+
+
+def computeHaarForGivenSize(integralImage, windowSize, \
+        allCoordinates, dataType):
+    for (x,y) in allCoordinates:
+        dataTmp = []
+        for haar in haarFeatures:
+            value = haar.computeHaar(x, y, windowSize, integralImage)
+            dataTmp.append(value)
+            #TODO targetId can be generated from the size of data
+        dataTmp.append(windowSize)
+        data.append(dataTmp)
+        targets.append(dataType)
+
+
+
 
 def iterateOverData(dataPath, dataType):
     """
@@ -61,52 +174,4 @@ def iterateOverData(dataPath, dataType):
         for fileName in files:
             if (fileName.endswith(('.jpg', '.jpeg', '.png'))):
                 dataFilePath = os.path.join(subdir, fileName)
-                createDataFromPath(dataFilePath, dataType)
-
-
-def createDataFromPath(imgPath, dataType):
-    """
-    filePath represents the path of the data file
-    targetId = {1, 0}: 1 -> yes, 0 -> no
-    """
-    tmp = normalizeImageData(imgPath)
-    normalizedData = tmp['data']
-    size = tmp['size']
-    integralImage = getIntegralImage(normalizedData, size)
-    createDataFromImage(integralImage, 1, 24, dataType)
-
-
-def createDataFromImage(integralImage, windowStep, minWindowSize, dataType):
-    width, height = integralImage.size
-    xs, ys = [], []
-    # All possible window sizes
-    maxSquare = width if width <= height else height
-    possibleSizes = np.arange(minWindowSize, maxSquare, windowStep)
-    if (maxSquare % windowStep != 0):
-        possibleSizes = np.append(possibleSizes, maxSquare)
-    for windowSize in possibleSizes:
-
-        # All possible x coordinates
-        xs = np.arange(0, width - windowSize, windowSize) if windowSize != width else [0]
-        if (width % windowSize != 0): xs = np.append(xs, width - windowSize)
-
-        # All possible y coordinates
-        ys = np.arange(0, height - windowSize, windowSize) if windowSize != height else [0]
-        if (height % windowSize != 0): ys = np.append(ys, height - windowSize)
-        #print("data size = %d" % (len(targets)))
-        #print("sizes = %s\n\n\nxs = %s\n\n\nys = %s\n\n\n" % (possibleSizes, xs, ys))
-        # Generate all combinations between possible x and y coordinates
-        allCoordinates = [[x,y] for x in xs for y in ys]
-        computeHaarForGivenSize(integralImage, windowSize, allCoordinates, dataType)
-
-def computeHaarForGivenSize(integralImage, windowSize, allCoordinates, dataType):
-    for (x,y) in allCoordinates:
-        dataTmp = []
-        for haar in haarFeatures:
-            value = haar.computeHaar(x, y, windowSize, integralImage)
-            dataTmp.append(value)
-            #TODO targetId can be generated from the size of data
-        dataTmp.append(windowSize)
-        data.append(dataTmp)
-        targets.append(dataType)
-
+                createDataFromPath(dataFilePath, **kwargs)
