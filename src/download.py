@@ -60,20 +60,21 @@ def find_uglies():
 
 # Create description for negative and positive training sets
 def create_pos_n_neg():
-    for file_type in ['neg']:
+    for file_type in ['../samples/neg']:
         for img in os.listdir(file_type):
             if file_type == 'neg':
                 # Negative image description is only its path
                 line = file_type + '/' + img + '\n'
                 with open('bg.txt', 'a') as f:
                     f.write(line)
-
+            """
             elif file_type == 'pos':
                 # Positive image description is its path,
                 #nbr of objects in the image, position and size of the object
                 line = file_type + '/' + img + ' 1 0 0 50 50\n'
                 with open('info.dat', 'a') as f:
                     f.write(line)
+            """
 
 #find_uglies()
 #store_raw_images()

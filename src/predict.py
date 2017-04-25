@@ -27,7 +27,7 @@ def predict(imgPath, clfName):
     preparedData = prepareData(integralImage, 5, 20, allCoord)
     dataValues = np.asarray(preparedData)
     predicted = clf.predict(dataValues)
-    drawRectangles(allCoord, predicted, preparedData)
+    drawRectangles(imgPath, allCoord, predicted, preparedData)
     """
     predicted_str = '\n'.join(map(str, predicted.tolist()))
     dataValues_str = '\n'.join(map(str, dataValues))
@@ -44,9 +44,9 @@ def predict(imgPath, clfName):
     """
 
 
-def drawRectangles(allCoord, predicted, preparedData):
+def drawRectangles(imgPath, allCoord, predicted, preparedData):
     positiveIndexes = np.where(predicted == 1)
-    im = np.array(Image.open('test.jpg'), dtype=np.uint8)
+    im = np.array(Image.open(imgPath), dtype=np.uint8)
     fig, ax = plt.subplots(1)
     ax.imshow(im)
     for index in positiveIndexes[0]:
