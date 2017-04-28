@@ -4,8 +4,8 @@ from classify import *
 from predict import *
 
 def main():
-    createData()
-    predict('test.jpg', 'trained-classifier.pkl')
+    #createData()
+    predict('test2.jpg', 'trained-classifier.pkl')
 
 if __name__ == '__main__':
     main()

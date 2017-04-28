@@ -2,7 +2,7 @@ SETUP=setup.py
 
 all:
 	python3 $(SETUP) build_ext --inplace
-	python3 src/image.py
+	python3 src/main.py
 
 check:
 	python3 tests/integralImageTest.py

@@ -17,6 +17,8 @@ from data import Data
 from classify import *
 
 
+sizes = []
+
 def predict(imgPath, clfName):
     clf = joblib.load(clfName)
     tmp = normalizeImageData(imgPath)
@@ -51,7 +53,7 @@ def drawRectangles(imgPath, allCoord, predicted, preparedData):
     ax.imshow(im)
     for index in positiveIndexes[0]:
         x, y = allCoord[index]
-        size = preparedData[index][4:][0]
+        size = sizes[index]
         rect = ptc.Rectangle((x, y), size, size, linewidth=1,
                 edgecolor='r', facecolor='none')
         ax.add_patch(rect)
@@ -97,8 +99,8 @@ def prepareSubWindow(integralImage, windowSize, allCoordinates):
             value = haar.computeHaar(x, y, windowSize, integralImage)
             dataTmp.append(value)
             #TODO targetId can be generated from the size of data
-        dataTmp.append(windowSize)
         preparedData.append(dataTmp)
+        sizes.append(windowSize)
     return preparedData
 
 
